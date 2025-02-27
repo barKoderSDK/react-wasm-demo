@@ -18,7 +18,7 @@ const BarcodeOptions = ({ value, templateTitles, selections, setSelections }) =>
           <span className="radio_description">{/* Add description based on value */}</span>
         </div>
         <div className="icon_container">
-          <img alt={`${value} icon`} src={`/images/ico-${value}.svg`} />
+          <img alt={`${value} icon`} src={`./images/ico-${value}.svg`} />
         </div>
       </label>
     </div>

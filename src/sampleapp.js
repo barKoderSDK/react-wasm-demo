@@ -435,7 +435,7 @@ const SampleApp = () => {
   };
 
   const stopScanner = (mode) => {
-    barkoder.stopScanner();
+    barkoder?.stopScanner();
     setIsCameraStarted(false);
     setFlags((prevFlags) => ({
       ...prevFlags,
@@ -547,17 +547,17 @@ const SampleApp = () => {
 
   useEffect(() => {
     const initializeBarkoder = async () => {
-      const sdk = await BarkoderSDK.initialize("YOUR_LICENCE_KEY");
+      const Barkoder = await BarkoderSDK.initialize("YOUR_LICENCE_KEY");
       setIsInitialized(true);
-      sdk.setEnabledDecoders(
-        sdk.constants.Decoders.QR,
-        sdk.constants.Decoders.Ean8,
-        sdk.constants.Decoders.PDF417
+      Barkoder.setEnabledDecoders(
+        Barkoder.constants.Decoders.QR,
+        Barkoder.constants.Decoders.Ean8,
+        Barkoder.constants.Decoders.PDF417
       );
-      sdk.setCameraResolution(sdk.constants.CameraResolution.FHD);
-      sdk.setDecodingSpeed(sdk.constants.DecodingSpeed.Normal);
-      sdk.setContinuous(true);
-      setBarkoder(sdk);
+      Barkoder.setCameraResolution(Barkoder.constants.CameraResolution.FHD);
+      Barkoder.setDecodingSpeed(Barkoder.constants.DecodingSpeed.Normal);
+      Barkoder.setContinuous(true);
+      setBarkoder(Barkoder);
     };
     initializeBarkoder();
   }, []);
@@ -605,17 +605,7 @@ const SampleApp = () => {
     }
   }, [selections.syms, barcodesData]);
 
-  useEffect(() => {
-    const closeButton = document.getElementById("close-button");
-    if (closeButton) {
-      closeButton.addEventListener("click", stopScanner);
-    }
-    return () => {
-      if (closeButton) {
-        closeButton.removeEventListener("click", stopScanner);
-      }
-    };
-  }, [isCameraStarted]);
+
 
   useEffect(() => {
     if (result && result.textualData) {
@@ -649,53 +639,12 @@ const SampleApp = () => {
 
   useEffect(() => {
     if (barkoder) {
-      const handleStartScanner = () => {
-        const activeCamera = barkoder?.getActiveCamera();
-
-        setSelections((prevSelections) => ({
-          ...prevSelections,
-          active_camera: activeCamera ? activeCamera.id : null,
-          isContinuousEnabled: barkoder?.getContinuous() || false,
-        }));
-
-        setFlags((prevFlags) => ({
-          ...prevFlags,
-          cameraLoading: false,
-          cameraRunning: true,
-        }));
-      };
-
-      const handleStopScanner = () => {
-        setFlags((prevFlags) => ({
-          ...prevFlags,
-          cameraLoading: false,
-          cameraRunning: false,
-          showResultBox: false,
-        }));
-      };
-
-      const handleScannerTimeout = () => {
-        setFlags((prevFlags) => ({
-          ...prevFlags,
-          cameraLoading: false,
-          cameraRunning: false,
-          showResultBox: false,
-        }));
-      };
-
       const handleVisibilityChange = () => {
         stopScanner();
-      };
-
-      document.addEventListener("startScanner", handleStartScanner);
-      document.addEventListener("stopScanner", handleStopScanner);
-      document.addEventListener("scannerTimeout", handleScannerTimeout);
+      };   
       document.addEventListener("visibilitychange", handleVisibilityChange);
 
       return () => {
-        document.removeEventListener("startScanner", handleStartScanner);
-        document.removeEventListener("stopScanner", handleStopScanner);
-        document.removeEventListener("scannerTimeout", handleScannerTimeout);
         document.removeEventListener(
           "visibilitychange",
           handleVisibilityChange
@@ -713,6 +662,32 @@ const SampleApp = () => {
       stopScanner("restart");
     }
   }, [flags.showResultBox]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const cameraPreviewElement = document.getElementById('cameraPreview');
+      if (cameraPreviewElement) {
+        setTimeout(() => {
+          setFlags(prevFlags => ({
+            ...prevFlags,
+            cammeraLoading: false,
+            cammeraRunning: true
+          }));
+        }, 1000);
+
+        const closeButton = document.getElementById('close-button');
+        if (closeButton) {
+          closeButton.addEventListener('click', () => {
+            stopScanner("initial");
+          });
+
+          clearInterval(intervalId);
+        }
+      }
+    }, 500);
+
+    return () => clearInterval(intervalId);
+  }, [flags.cammeraLoading]);
 
   // useMemo
   const templateTitle = useMemo(() => {
@@ -832,22 +807,23 @@ const SampleApp = () => {
                     </div>
                   </div>
                 )}
-              {flags.mode === "scanning" &&
-                !flags.showResultBox &&
+              {/* {flags.mode === "scanning" &&
+                // !flags.showResultBox &&
                 !flags.cammeraLoading &&
-                !flags.cammeraRunning && (
+                !flags.cammeraRunning && 
+                (
                   <button
                     id="startAgain"
                     onClick={startScanner}
                   >
                     Start Camera
                   </button>
-                )}
+                )} */}
 
               {flags.mode === "scanning" &&
                 flags.cammeraLoading &&
                 !flags.showResultBox &&
-                !flags.cammeraRunning && (
+                 (
                   <svg
                     id="cameraLoader"
                     xmlns="http://www.w3.org/2000/svg"
@@ -944,7 +920,7 @@ const SampleApp = () => {
                   <div className="logo">
                     <img
                       alt="barkoder logo"
-                      src="/images/logo-barkoder.svg"
+                      src="./images/logo-barkoder.svg"
                     />
                   </div>
                   <div className="description">
