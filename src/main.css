@@ -1055,3 +1055,34 @@ input[type="radio"] {
   	align-items: center;
   	cursor: pointer;
   }
+
+  .zoom_btn  {
+	color: white;
+	border: none;
+	padding: 10px 20px; 
+	cursor: pointer; 
+	transition: opacity 0.3s ease; 
+  }
+  
+  .zoom_btn:disabled {
+	background-color: gray; 
+	color: lightgray; 
+	cursor: not-allowed; 
+	opacity: 0.5; 
+  }
+
+
+  .flash_btn {
+	color: white;
+	border: none;
+	padding: 10px 20px; 
+	cursor: pointer; 
+	transition: opacity 0.3s ease; 
+  }
+
+  .flash_btn:disabled {
+	background: gray; 
+	color: lightgray; 
+	cursor: not-allowed; 
+	opacity: 0.5;
+ }

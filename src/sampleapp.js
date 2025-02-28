@@ -69,6 +69,42 @@ const SampleApp = () => {
   });
   const templateValues = Object.keys(templateTitles);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isFlashAvailable, setIsFlashAvailable] = useState(false)
+  const [isZoomAvailable, setIsZoomAvailable] = useState(1) // 1 for FALSE
+
+
+  const handleZoom = async () => {
+    if (barkoder) {
+      try {
+       await barkoder.changeZoomState();
+      } catch (error) {
+        console.error("Error zooming in/out:", error);
+      }
+    }
+  };
+
+  const handleFlash = async () => {
+    if (barkoder) {
+      try {
+       await barkoder.changeFlashState();
+       
+      } catch (error) {
+        console.error("Error flash on/off:", error);
+      }
+    }
+  };
+
+
+  // useEffect(() => {
+  //   if(barkoder) {
+  //     const checkFlash = barkoder.isFlashAvailable()
+  //     const checkZoom = barkoder.getMaxZoomFactor()
+  //     setIsFlashAvailable(checkFlash)
+  //     setIsZoomAvailable(checkZoom)  
+  //   }
+  // }, [barkoder])
+
+
 
   const showSingleNotification = (message) => {
     setNotifications([{ textualData: message }]);
@@ -343,8 +379,11 @@ const SampleApp = () => {
     }, 350);
   };
 
-  const changeCamera = (cameraId) => {
-    showBox("");
+  const handleCameraChange = (cameraId) => {
+    setFlags((prevFlags) => ({
+      ...prevFlags,
+      showBox: ""
+    }))
     if (selections.active_camera !== cameraId) {
       setSelections((prevSelections) => ({
         ...prevSelections,
@@ -414,6 +453,8 @@ const SampleApp = () => {
 
     setTimeout(() => {
       if (barkoder) {
+      
+
         barkoder?.startScanner((result) => {
           showResult(result);
           const newNotification = { 
@@ -521,7 +562,8 @@ const SampleApp = () => {
       syms: isChecked ? barcodeTypes.map((sym) => parseInt(sym.num)) : [],
     }));
   };
-
+  
+  
   //use effects
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -547,6 +589,7 @@ const SampleApp = () => {
 
   useEffect(() => {
     const initializeBarkoder = async () => {
+      
       const Barkoder = await BarkoderSDK.initialize("YOUR_LICENCE_KEY");
       setIsInitialized(true);
       Barkoder.setEnabledDecoders(
@@ -554,10 +597,19 @@ const SampleApp = () => {
         Barkoder.constants.Decoders.Ean8,
         Barkoder.constants.Decoders.PDF417
       );
+      Barkoder.setFlashEnabled(false)
+      Barkoder.setZoomEnabled(false)
+      Barkoder.setCloseEnabled(false)
+      Barkoder.setCameraPickerEnabled(false)
       Barkoder.setCameraResolution(Barkoder.constants.CameraResolution.FHD);
       Barkoder.setDecodingSpeed(Barkoder.constants.DecodingSpeed.Normal);
       Barkoder.setContinuous(true);
       setBarkoder(Barkoder);
+      const allCameras = await Barkoder.getCameras();
+      setCameras((prev) => [
+        ...prev,
+        ...allCameras 
+      ]);
     };
     initializeBarkoder();
   }, []);
@@ -667,13 +719,13 @@ const SampleApp = () => {
     const intervalId = setInterval(() => {
       const cameraPreviewElement = document.getElementById('cameraPreview');
       if (cameraPreviewElement) {
-        setTimeout(() => {
-          setFlags(prevFlags => ({
-            ...prevFlags,
-            cammeraLoading: false,
-            cammeraRunning: true
-          }));
-        }, 1000);
+        // setTimeout(() => {
+        //   setFlags(prevFlags => ({
+        //     ...prevFlags,
+        //     cammeraLoading: false,
+        //     cammeraRunning: true
+        //   }));
+        // }, 1000);
 
         const closeButton = document.getElementById('close-button');
         if (closeButton) {
@@ -688,6 +740,26 @@ const SampleApp = () => {
 
     return () => clearInterval(intervalId);
   }, [flags.cammeraLoading]);
+
+  useEffect(() => {
+    const fetchActiveCamera = async () => {
+      if (barkoder) {
+        const activeCamera = await barkoder?.getActiveCamera();
+        if (activeCamera && activeCamera.id) {
+          setSelections((prevSelections) => ({
+            ...prevSelections,
+            active_camera: activeCamera.id,
+          }));
+        }
+      }
+    };
+  
+    const delayFetchActiveCamera = () => {
+      setTimeout(fetchActiveCamera, 3000);
+    };
+  
+    delayFetchActiveCamera();
+  }, [flags.cammeraRunning]);
 
   // useMemo
   const templateTitle = useMemo(() => {
@@ -730,6 +802,20 @@ const SampleApp = () => {
     }
     return {};
   }, [totalScannedBarcodes, result]);
+
+
+  barkoder?.addEventListener("startScanner", function(e) {
+    setFlags(prevFlags => ({
+      ...prevFlags,
+      cammeraLoading: false,
+      cammeraRunning: true
+    }));
+
+    const checkFlash = barkoder.isFlashAvailable()
+    const checkZoom = barkoder.getMaxZoomFactor()
+    setIsFlashAvailable(checkFlash)
+    setIsZoomAvailable(checkZoom)  
+  });
 
   return (
     <>
@@ -1072,6 +1158,18 @@ const SampleApp = () => {
                       <path d="M7.30099 7.10487e-05C7.12332 7.10487e-05 6.94565 0.0655298 6.80538 0.205799L4 3.01118L1.19462 0.205799C0.923437 -0.0653877 0.474576 -0.0653877 0.20339 0.205799C-0.0677966 0.476985 -0.0677966 0.925845 0.20339 1.19703L3.50438 4.49803C3.77557 4.76921 4.22443 4.76921 4.49562 4.49803L7.79661 1.19703C8.0678 0.925845 8.0678 0.476985 7.79661 0.205799C7.65634 0.0655298 7.47867 7.10487e-05 7.30099 7.10487e-05Z" />
                     </svg>
                   </button>
+
+                   <button className="zoom_btn" style={{ color: 'white' }} onClick={handleZoom} disabled={isZoomAvailable === 1}>
+                    Zoom
+                  </button>
+                  <button 
+                    className="flash_btn" 
+                    style={{ color: 'white' }} 
+                    onClick={handleFlash} 
+                    disabled={isFlashAvailable === false}
+                  >
+                    Flash
+                  </button>
                 </div>
               )}
 
@@ -1167,57 +1265,37 @@ const SampleApp = () => {
                 </div>
               )}
 
+    
+
               {(flags.mode === "scanning" || selections.isMultiscanEnabled) &&
                 flags.showBox === "cameraPicker" && (
-                  <div className="box_options">
-                    <div className="box_heading">
-                      <h2>Choose Camera</h2>
+                  <div className="box_options fade-in">
+                  <div className="box_heading">
+                    <h2>Choose Camera</h2>
+                    <button className="close" type="button" onClick={() => setFlags((prevFlags) => ({...prevFlags, showBox: "" }))}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.16999 15.5799C8.97999 15.5799 8.78999 15.5099 8.63999 15.3599C8.34999 15.0699 8.34999 14.5899 8.63999 14.2999L14.3 8.63986C14.59 8.34986 15.07 8.34986 15.36 8.63986C15.65 8.92986 15.65 9.40986 15.36 9.69986L9.69998 15.3599C9.55998 15.5099 9.35999 15.5799 9.16999 15.5799Z" />
+                        <path d="M14.83 15.5799C14.64 15.5799 14.45 15.5099 14.3 15.3599L8.63999 9.69986C8.34999 9.40986 8.34999 8.92986 8.63999 8.63986C8.92999 8.34986 9.40998 8.34986 9.69998 8.63986L15.36 14.2999C15.65 14.5899 15.65 15.0699 15.36 15.3599C15.21 15.5099 15.02 15.5799 14.83 15.5799Z" />
+                        <path d="M15 22.75H9C3.57 22.75 1.25 20.43 1.25 15V9C1.25 3.57 3.57 1.25 9 1.25H15C20.43 1.25 22.75 3.57 22.75 9V15C22.75 20.43 20.43 22.75 15 22.75ZM9 2.75C4.39 2.75 2.75 4.39 2.75 9V15C2.75 19.61 4.39 21.25 9 21.25H15C19.61 21.25 21.25 19.61 21.25 15V9C21.25 4.39 19.61 2.75 15 2.75H9Z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="cameraPicker">
+                    {cameras.map((camera) => (
                       <button
-                        className="close"
-                        type="button"
-                        onClick={() => showBox("")}
+                        key={camera.id}
+                        onClick={() => handleCameraChange(camera.id)}
+                        className={camera.id === selections.active_camera ? 'active' : ''}
                       >
-                        <svg
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M9.16999 15.5799C8.97999 15.5799 8.78999 15.5099 8.63999 15.3599C8.34999 15.0699 8.34999 14.5899 8.63999 14.2999L14.3 8.63986C14.59 8.34986 15.07 8.34986 15.36 8.63986C15.65 8.92986 15.65 9.40986 15.36 9.69986L9.69998 15.3599C9.55998 15.5099 9.35999 15.5799 9.16999 15.5799Z" />
-                          <path d="M14.83 15.5799C14.64 15.5799 14.45 15.5099 14.3 15.3599L8.63999 9.69986C8.34999 9.40986 8.34999 8.92986 8.63999 8.63986C8.92999 8.34986 9.40998 8.34986 9.69998 8.63986L15.36 14.2999C15.65 14.5899 15.65 15.0699 15.36 15.3599C15.21 15.5099 15.02 15.5799 14.83 15.5799Z" />
-                          <path d="M15 22.75H9C3.57 22.75 1.25 20.43 1.25 15V9C1.25 3.57 3.57 1.25 9 1.25H15C20.43 1.25 22.75 3.57 22.75 9V15C22.75 20.43 20.43 22.75 15 22.75ZM9 2.75C4.39 2.75 2.75 4.39 2.75 9V15C2.75 19.61 4.39 21.25 9 21.25H15C19.61 21.25 21.25 19.61 21.25 15V9C21.25 4.39 19.61 2.75 15 2.75H9Z" />
+                        {camera.label}
+                        <svg className="check" width="16" height="12" viewBox="0 0 16 12" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M5.50001 9.47511L2.02501 6.00011L0.841675 7.17511L5.50001 11.8334L15.5 1.83345L14.325 0.658447L5.50001 9.47511Z" />
                         </svg>
                       </button>
-                    </div>
-                    <div className="cameraPicker">
-                      {cameras.map((camera) => (
-                        <button
-                          key={camera.id}
-                          onClick={() => changeCamera(camera.id)}
-                          className={
-                            camera.id === selections.active_camera
-                              ? "active"
-                              : ""
-                          }
-                        >
-                          {camera.label}
-                          {camera.id === selections.active_camera && (
-                            <svg
-                              className="check"
-                              width="16"
-                              height="12"
-                              viewBox="0 0 16 12"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path d="M5.50001 9.47511L2.02501 6.00011L0.841675 7.17511L5.50001 11.8334L15.5 1.83345L14.325 0.658447L5.50001 9.47511Z" />
-                            </svg>
-                          )}
-                        </button>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-                )}
+                </div>
+                 )} 
 
               {/* Settings Box */}
               {(flags.mode === "scanning" || selections.isMultiscanEnabled) &&
