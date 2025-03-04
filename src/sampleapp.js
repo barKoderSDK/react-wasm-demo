@@ -2,9 +2,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import BarkoderSDK from "barkoder-wasm";
 import BarcodeOptions from "./components/BarcodeOptions";
 import BarcodeResultBox from "./components/BarcodeResultBox";
+import { IoIosFlash, IoIosFlashOff } from "react-icons/io";
+import { CiZoomIn, CiZoomOut  } from "react-icons/ci";
 
 const SampleApp = () => {
-  const [barkoder, setBarkoder] = useState(null);
+  const [Barkoder, setBarkoder] = useState(null);
   const [isCameraStarted, setIsCameraStarted] = useState(false);
   const [barcodesScannedCount, setBarcodesScannedCount] = useState(0);
   const [totalScannedBarcodes, setTotalScannedBarcodes] = useState([]);
@@ -63,6 +65,16 @@ const SampleApp = () => {
     25: { title: "Code 32", type: "1d" },
     26: { title: "Telepen", type: "1d" },
     27: { title: "DotCode", type: "2d" },
+    28: { title: "Databar14", type: "1d"},
+    29: { title: "DatabarLimited", type: "1d"},
+    30: { title: "DatabarExpanded", type: "1d"},
+    31: { title: "PostalIMB", type: "1d"},
+    32: { title: "Postnet", type: "1d"},
+    32: { title: "Planet", type: "1d"},
+    33: { title: "AustralianPost", type: "1d"},
+    34: { title: "RoyalMail", type: "1d"},
+    35: { title: "KIX", type: "1d"},
+    36: { title: "JapanesePost", type: "1d"},
   });
   const [templateTitles, setTemplateTitles] = useState({
     all: "All Barcodes",
@@ -71,12 +83,17 @@ const SampleApp = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isFlashAvailable, setIsFlashAvailable] = useState(false)
   const [isZoomAvailable, setIsZoomAvailable] = useState(1) // 1 for FALSE
+  const [isFlashOn, setIsFlashOn] = useState(false)
+  const [zoomValue, setZoomValue] = useState(1)
 
 
   const handleZoom = async () => {
-    if (barkoder) {
+    if (Barkoder) {
       try {
-       await barkoder.changeZoomState();
+       await Barkoder.changeZoomState();
+       setZoomValue((prevValue) => {
+        return prevValue === 3 ? 1 : prevValue + 1;
+       });
       } catch (error) {
         console.error("Error zooming in/out:", error);
       }
@@ -84,27 +101,15 @@ const SampleApp = () => {
   };
 
   const handleFlash = async () => {
-    if (barkoder) {
+    setIsFlashOn((prevState) => !prevState);
+    if (Barkoder) {
       try {
-       await barkoder.changeFlashState();
-       
+        await Barkoder.changeFlashState();
       } catch (error) {
         console.error("Error flash on/off:", error);
       }
     }
   };
-
-
-  // useEffect(() => {
-  //   if(barkoder) {
-  //     const checkFlash = barkoder.isFlashAvailable()
-  //     const checkZoom = barkoder.getMaxZoomFactor()
-  //     setIsFlashAvailable(checkFlash)
-  //     setIsZoomAvailable(checkZoom)  
-  //   }
-  // }, [barkoder])
-
-
 
   const showSingleNotification = (message) => {
     setNotifications([{ textualData: message }]);
@@ -226,21 +231,21 @@ const SampleApp = () => {
       };
 
       if (newMultiscanEnabled) {
-        barkoder.setContinuous(true);
-        barkoder.setMulticodeCachingDuration(3000);
-        barkoder.setMulticodeCachingEnabled(
-          barkoder.constants.MulticodeCachingEnabled.Enable
+        Barkoder.setContinuous(true);
+        Barkoder.setMulticodeCachingDuration(3000);
+        Barkoder.setMulticodeCachingEnabled(
+          Barkoder.constants.MulticodeCachingEnabled.Enable
         );
-        barkoder.setMaximumResultsCount(20);
-        barkoder.setDpsLimit(28);
+        Barkoder.setMaximumResultsCount(20);
+        Barkoder.setDpsLimit(28);
       } else {
-        barkoder.setContinuous(false);
-        barkoder.setMulticodeCachingDuration(0);
-        barkoder.setMulticodeCachingEnabled(
-          barkoder.constants.MulticodeCachingEnabled.Disable
+        Barkoder.setContinuous(false);
+        Barkoder.setMulticodeCachingDuration(0);
+        Barkoder.setMulticodeCachingEnabled(
+          Barkoder.constants.MulticodeCachingEnabled.Disable
         );
-        barkoder.setMaximumResultsCount(1);
-        barkoder.setDpsLimit(28);
+        Barkoder.setMaximumResultsCount(1);
+        Barkoder.setDpsLimit(28);
       }
       return newSelections;
     });
@@ -248,7 +253,7 @@ const SampleApp = () => {
 
   const showResult = (result) => {
     setTimeout(() => {
-      barkoder.setPauseDecoding(false);
+      Barkoder.setPauseDecoding(false);
     }, 5);
 
     setResult(result);
@@ -273,107 +278,27 @@ const SampleApp = () => {
 
     setTimeout(() => {
       var canvas = document.getElementById("barkoder-result-image");
-      var imageFullScreen = document.getElementById(
-        "barkoder-result-image-full"
-      );
+      var imageFullScreen = document.getElementById("barkoder-result-image-full");
+
       if (canvas) {
-        var ctx = canvas.getContext("2d");
-        createImageBitmap(imageData).then((image) => {
-          if (result.location) {
-            result.location.p1.x -= 20;
-            result.location.p1.y -= 20;
-            result.location.p2.x += 20;
-            result.location.p2.y += 20;
-            result.location.p3.x += 20;
-            result.location.p3.y += 20;
-            result.location.p4.x -= 20;
-            result.location.p4.y -= 20;
-            const xs = [
-              result.location.p1.x,
-              result.location.p2.x,
-              result.location.p3.x,
-              result.location.p4.x,
-            ];
-            const ys = [
-              result.location.p1.y,
-              result.location.p2.y,
-              result.location.p3.y,
-              result.location.p4.y,
-            ];
-            const minX = Math.min(...xs);
-            const minY = Math.min(...ys);
-            const maxX = Math.max(...xs);
-            const maxY = Math.max(...ys);
-            let cutoutWidth = maxX - minX;
-            let cutoutHeight = maxY - minY;
-            const offset = 0;
-            cutoutWidth *= 1 + offset;
-            cutoutHeight *= 1 + offset;
-            const offsetX = (-cutoutWidth * offset) / 2;
-            const offsetY = (-cutoutHeight * offset) / 2;
-            const canvasWidth = 800;
-            const canvasHeight = 600;
-            const scaleX = canvasWidth / cutoutWidth;
-            const scaleY = canvasHeight / cutoutHeight;
-            const scale = Math.max(scaleX, scaleY);
-            canvas.width = cutoutWidth * scale;
-            canvas.height = cutoutHeight * scale;
-            const tempCanvas = document.createElement("canvas");
-            const tempCtx = tempCanvas.getContext("2d");
-            tempCanvas.width = cutoutWidth;
-            tempCanvas.height = cutoutHeight;
-            tempCtx.drawImage(
-              image,
-              minX + offsetX,
-              minY + offsetY,
-              cutoutWidth / (1 + offset),
-              cutoutHeight / (1 + offset),
-              0,
-              0,
-              cutoutWidth,
-              cutoutHeight
-            );
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(
-              tempCanvas,
-              0,
-              0,
-              cutoutWidth,
-              cutoutHeight,
-              0,
-              0,
-              canvas.width,
-              canvas.height
-            );
-          }
+        var ctx = canvas.getContext("2d");      
+        createImageBitmap(result.capturedBarcode).then((image) => {
+          canvas.width = image.width;
+          canvas.height = image.height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
         });
       }
 
       if (imageFullScreen) {
-        fitToContainer(imageFullScreen, imageData);
+        fitToContainer(imageFullScreen, result.capturedFrame);
         var ctx_full = imageFullScreen.getContext("2d");
-        createImageBitmap(imageData).then((img) => {
-          ctx_full.drawImage(img, 0, 0, imageData.width, imageData.height);
-          ctx_full.fillStyle = "rgba(0, 255, 0, 0.5)";
-          const xs = [
-            result.location.p1.x,
-            result.location.p2.x,
-            result.location.p3.x,
-            result.location.p4.x,
-          ];
-          const ys = [
-            result.location.p1.y,
-            result.location.p2.y,
-            result.location.p3.y,
-            result.location.p4.y,
-          ];
-          const minX = Math.min(...xs);
-          const minY = Math.min(...ys);
-          const maxX = Math.max(...xs);
-          const maxY = Math.max(...ys);
-          const width = maxX - minX;
-          const height = maxY - minY;
-          ctx_full.fillRect(minX, minY, width, height);
+      
+        createImageBitmap(result.capturedFrame).then((img) => {
+          imageFullScreen.width = img.width;
+          imageFullScreen.height = img.height;
+          ctx_full.clearRect(0, 0, imageFullScreen.width, imageFullScreen.height);
+          ctx_full.drawImage(img, 0, 0, imageFullScreen.width, imageFullScreen.height);
         });
       }
     }, 350);
@@ -389,7 +314,7 @@ const SampleApp = () => {
         ...prevSelections,
         active_camera: cameraId,
       }));
-      barkoder.setCameraId(cameraId);
+      Barkoder.setCameraId(cameraId);
       stopScanner("restart");
     }
   };
@@ -452,10 +377,10 @@ const SampleApp = () => {
     }));
 
     setTimeout(() => {
-      if (barkoder) {
+      if (Barkoder) {
       
 
-        barkoder?.startScanner((result) => {
+        Barkoder?.startScanner((result) => {
           showResult(result);
           const newNotification = { 
             id: Date.now(), 
@@ -476,7 +401,9 @@ const SampleApp = () => {
   };
 
   const stopScanner = (mode) => {
-    barkoder?.stopScanner();
+    Barkoder?.stopScanner();
+    setIsFlashOn(false);
+    setZoomValue(1);
     setIsCameraStarted(false);
     setFlags((prevFlags) => ({
       ...prevFlags,
@@ -529,7 +456,7 @@ const SampleApp = () => {
 
   const symChange = (symsArr) => {
     const symsArrNumbers = symsArr.map((item) => Number(item));
-    barkoder?.setEnabledDecoders.apply(null, symsArrNumbers);
+    Barkoder?.setEnabledDecoders.apply(null, symsArrNumbers);
   };
 
   const handleCheckAll = () => {
@@ -594,8 +521,28 @@ const SampleApp = () => {
       setIsInitialized(true);
       Barkoder.setEnabledDecoders(
         Barkoder.constants.Decoders.QR,
+        Barkoder.constants.Decoders.QRMicro,
+        Barkoder.constants.Decoders.Code128,
+        Barkoder.constants.Decoders.Code93,
+        Barkoder.constants.Decoders.Code39,
+        Barkoder.constants.Decoders.Codabar,
+        Barkoder.constants.Decoders.Code11,
         Barkoder.constants.Decoders.Ean8,
-        Barkoder.constants.Decoders.PDF417
+        Barkoder.constants.Decoders.Ean13,
+        Barkoder.constants.Decoders.Msi,
+        Barkoder.constants.Decoders.UpcA,
+        Barkoder.constants.Decoders.UpcE,
+        Barkoder.constants.Decoders.PDF417,
+        Barkoder.constants.Decoders.Databar14,
+        Barkoder.constants.Decoders.DatabarLimited,
+        Barkoder.constants.Decoders.DatabarExpanded,
+        Barkoder.constants.Decoders.PostalIMB,
+        Barkoder.constants.Decoders.Postnet,
+        Barkoder.constants.Decoders.Planet,
+        Barkoder.constants.Decoders.AustralianPost,
+        Barkoder.constants.Decoders.RoyalMail,
+        Barkoder.constants.Decoders.KIX,
+        Barkoder.constants.Decoders.JapanesePost
       );
       Barkoder.setFlashEnabled(false)
       Barkoder.setZoomEnabled(false)
@@ -621,9 +568,9 @@ const SampleApp = () => {
   }, [selections.barcode_type]);
 
   useEffect(() => {
-    if (barkoder?.applyTemplate) {
+    if (Barkoder?.applyTemplate) {
       const applyTemplate = async () => {
-        await barkoder.applyTemplate("/templates.json", selections.template);
+        await Barkoder.applyTemplate("/templates.json", selections.template);
       };
 
       applyTemplate();
@@ -631,20 +578,20 @@ const SampleApp = () => {
   }, [selections.template]);
 
   useEffect(() => {
-    if (barkoder) {
-      barkoder.setDecodingSpeed(Number(selections.speed));
+    if (Barkoder) {
+      Barkoder.setDecodingSpeed(Number(selections.speed));
     }
   }, [selections.speed]);
 
   useEffect(() => {
-    if (barkoder) {
-      barkoder.setCameraResolution(Number(selections.camera_res));
+    if (Barkoder) {
+      Barkoder.setCameraResolution(Number(selections.camera_res));
     }
   }, [selections.camera_res]);
 
   useEffect(() => {
-    if (barkoder) {
-      barkoder.setDpsLimit(Number(selections.dps));
+    if (Barkoder) {
+      Barkoder.setDpsLimit(Number(selections.dps));
     }
   }, [selections.dps]);
 
@@ -673,13 +620,13 @@ const SampleApp = () => {
 
   useEffect(() => {
     if (selections.camera_res) {
-      barkoder.setCameraResolution(Number(selections.camera_res));
+      Barkoder.setCameraResolution(Number(selections.camera_res));
     }
   }, [selections.camera_res]);
 
   useEffect(() => {
-    if (selections.dps && barkoder) {
-      barkoder.setDpsLimit(Number(selections.dps));
+    if (selections.dps && Barkoder) {
+      Barkoder.setDpsLimit(Number(selections.dps));
     }
   }, [selections.dps]);
 
@@ -690,7 +637,7 @@ const SampleApp = () => {
   }, [selections.template, barcodesData]);
 
   useEffect(() => {
-    if (barkoder) {
+    if (Barkoder) {
       const handleVisibilityChange = () => {
         stopScanner();
       };   
@@ -703,7 +650,7 @@ const SampleApp = () => {
         );
       };
     }
-  }, [barkoder]);
+  }, [Barkoder]);
 
   useEffect(() => {
     if (
@@ -716,35 +663,9 @@ const SampleApp = () => {
   }, [flags.showResultBox]);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const cameraPreviewElement = document.getElementById('cameraPreview');
-      if (cameraPreviewElement) {
-        // setTimeout(() => {
-        //   setFlags(prevFlags => ({
-        //     ...prevFlags,
-        //     cammeraLoading: false,
-        //     cammeraRunning: true
-        //   }));
-        // }, 1000);
-
-        const closeButton = document.getElementById('close-button');
-        if (closeButton) {
-          closeButton.addEventListener('click', () => {
-            stopScanner("initial");
-          });
-
-          clearInterval(intervalId);
-        }
-      }
-    }, 500);
-
-    return () => clearInterval(intervalId);
-  }, [flags.cammeraLoading]);
-
-  useEffect(() => {
     const fetchActiveCamera = async () => {
-      if (barkoder) {
-        const activeCamera = await barkoder?.getActiveCamera();
+      if (Barkoder) {
+        const activeCamera = await Barkoder?.getActiveCamera();
         if (activeCamera && activeCamera.id) {
           setSelections((prevSelections) => ({
             ...prevSelections,
@@ -767,32 +688,32 @@ const SampleApp = () => {
   }, [selections.template, templateTitles]);
 
   const decoderSpeedList = useMemo(() => {
-    if (barkoder) {
+    if (Barkoder) {
       const speedModes = [
-        Object.keys(barkoder.constants.DecodingSpeed)[0],
-        Object.keys(barkoder.constants.DecodingSpeed)[1],
-        Object.keys(barkoder.constants.DecodingSpeed)[2],
+        Object.keys(Barkoder.constants.DecodingSpeed)[0],
+        Object.keys(Barkoder.constants.DecodingSpeed)[1],
+        Object.keys(Barkoder.constants.DecodingSpeed)[2],
       ];
 
       return speedModes.map((speedMode) => ({
-        value: barkoder.constants.DecodingSpeed[speedMode],
+        value: Barkoder.constants.DecodingSpeed[speedMode],
         text: speedMode,
       }));
     }
-  }, [barkoder]);
+  }, [Barkoder]);
 
   const cameraResolutionList = useMemo(() => {
-    if (barkoder) {
+    if (Barkoder) {
       const resolutionModes = [
-        Object.keys(barkoder.constants.CameraResolution)[0],
-        Object.keys(barkoder.constants.CameraResolution)[1],
+        Object.keys(Barkoder.constants.CameraResolution)[0],
+        Object.keys(Barkoder.constants.CameraResolution)[1],
       ];
       return resolutionModes.map((resolutionMode) => ({
-        value: barkoder.constants.CameraResolution[resolutionMode],
+        value: Barkoder.constants.CameraResolution[resolutionMode],
         text: resolutionMode,
       }));
     }
-  }, [barkoder]);
+  }, [Barkoder]);
 
   const latestResult = useMemo(() => {
     if (totalScannedBarcodes.length > 0) {
@@ -804,15 +725,15 @@ const SampleApp = () => {
   }, [totalScannedBarcodes, result]);
 
 
-  barkoder?.addEventListener("startScanner", function(e) {
+  Barkoder?.addEventListener("startScanner", function(e) {
     setFlags(prevFlags => ({
       ...prevFlags,
       cammeraLoading: false,
       cammeraRunning: true
     }));
 
-    const checkFlash = barkoder.isFlashAvailable()
-    const checkZoom = barkoder.getMaxZoomFactor()
+    const checkFlash = Barkoder.isFlashAvailable()
+    const checkZoom = Barkoder.getMaxZoomFactor()
     setIsFlashAvailable(checkFlash)
     setIsZoomAvailable(checkZoom)  
   });
@@ -1159,8 +1080,8 @@ const SampleApp = () => {
                     </svg>
                   </button>
 
-                   <button className="zoom_btn" style={{ color: 'white' }} onClick={handleZoom} disabled={isZoomAvailable === 1}>
-                    Zoom
+                  <button className="zoom_btn" style={{ color: 'white' }} onClick={handleZoom} disabled={isZoomAvailable === 1}>
+                    {zoomValue === 3 ? <CiZoomOut size={24} /> : <CiZoomIn size={24} />} 
                   </button>
                   <button 
                     className="flash_btn" 
@@ -1168,7 +1089,11 @@ const SampleApp = () => {
                     onClick={handleFlash} 
                     disabled={isFlashAvailable === false}
                   >
-                    Flash
+                    {isFlashOn ? (
+                      <IoIosFlash size={20} />
+                    ) : (
+                      <IoIosFlashOff size={20} />
+                    )}
                   </button>
                 </div>
               )}

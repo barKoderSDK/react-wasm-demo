@@ -146,6 +146,36 @@
                 "minimumLength": 0,
                 "maximumLength": 0
             },
+            "Databar 14": {
+                "enabled": true
+            },
+            "Databar Expanded": {
+                "enabled": true
+            },
+            "Databar Limited": {
+                "enabled": true
+            },
+			"Postal IMB": {
+                "enabled": true
+            },
+            "Postnet": {
+                "enabled": true
+            },
+            "Planet": {
+                "enabled": true
+            },
+            "Australian Post": {
+                "enabled": true
+            },
+            "Royal Mail": {
+                "enabled": true
+            },
+            "KIX": {
+                "enabled": true
+            },
+            "Japanese Post": {
+                "enabled": true
+            },
             "general": {
                 "maxThreads": 2,
                 "decodingSpeed": 1,
