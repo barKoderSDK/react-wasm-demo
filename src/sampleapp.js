@@ -9,10 +9,8 @@ const SampleApp = () => {
   const [Barkoder, setBarkoder] = useState(null);
   const [isCameraStarted, setIsCameraStarted] = useState(false);
   const [barcodesScannedCount, setBarcodesScannedCount] = useState(0);
-  const [totalScannedBarcodes, setTotalScannedBarcodes] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [cameras, setCameras] = useState([]);
-  const [result, setResult] = useState({});
   const [selections, setSelections] = useState({
     check_all: false,
     active_camera: "",
@@ -85,6 +83,10 @@ const SampleApp = () => {
   const [isZoomAvailable, setIsZoomAvailable] = useState(1) // 1 for FALSE
   const [isFlashOn, setIsFlashOn] = useState(false)
   const [zoomValue, setZoomValue] = useState(1)
+  const [scannedBarcodes, setScannedBarcodes] = useState([]);
+  const [showStartBtn, setShowStartBtn] = useState(false);
+
+
 
 
   const handleZoom = async () => {
@@ -119,34 +121,19 @@ const SampleApp = () => {
     }, 3000);
   };
 
-  const addNotifications = (result) => {
-    const messages = Array.isArray(result.results) ? result.results : [result];
-    setTotalScannedBarcodes((prevBarcodes) => [...prevBarcodes, ...messages]);
-    setNotifications((prevNotifications) => [
-      ...prevNotifications,
-      ...messages,
-    ]);
-    messages.forEach((message) => {
-      setTimeout(() => {
-        setNotifications((prevNotifications) => {
-          return prevNotifications.filter((notif) => notif !== message);
-        });
-      }, 3000);
-    });
-  };
-
   const searchResult = () => {
-    if (!latestResult || !latestResult.textualData) return;
+    const search_data = document.getElementById("barcode_description")?.textContent || '';
+    if (!search_data) return;
     window.open(
       `https://www.google.com/search?q=${encodeURIComponent(
-        latestResult.textualData
+        search_data
       )}`,
       "_blank"
     );
   };
 
   const copyResult = () => {
-    const textToCopy = latestResult.textualData;
+    const textToCopy = document.getElementById("barcode_description")?.textContent || '';
     navigator.clipboard
       .writeText(textToCopy)
       .then(() => {
@@ -157,39 +144,30 @@ const SampleApp = () => {
       });
   };
 
-  const convertToCSV = () => {
-    let data = [];
-    if (totalScannedBarcodes.length > 0) {
-      data = totalScannedBarcodes.map((barcode) => ({
-        barcodeTypeName: barcode.barcodeTypeName,
-        textualData: barcode.textualData,
-      }));
-    } else if (Object.keys(result).length > 0) {
-      data.push({
-        barcodeTypeName: result.barcodeTypeName,
-        textualData: result.textualData,
-      });
-    }
-
-    if (data.length) {
-      const headings = ["Barcode Type", "Scan Result"];
-      const headers = Object.keys(data[0]);
-      const rows = data.map((row) =>
-        headers.map((header) => JSON.stringify(row[header] || "")).join(",")
-      );
-      return [headings.join(","), ...rows].join("\n");
-    }
-
-    return "";
+  const getBarcodeData = () => {
+    const barcodeTitle = document.getElementById("barcode_title")?.textContent || '';
+    const barcodeDescription = document.getElementById("barcode_description")?.textContent || '';
+    return { barcodeTitle, barcodeDescription };
   };
 
+  const convertToCSV = () => {
+    if (scannedBarcodes.length === 0) return '';
+  
+    const headings = ["Barcode Title", "Barcode Description"];
+    const rows = scannedBarcodes.map((barcode) =>
+      [barcode.barcodeTitle, barcode.barcodeDescription].map((field) => JSON.stringify(field || "")).join(",")
+    );
+  
+    return [headings.join(","), ...rows].join("\n");
+  };
+  
   const exportToCSV = () => {
     const csvData = convertToCSV();
     if (csvData.length > 0) {
       const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-
+  
       link.setAttribute("href", url);
       link.setAttribute("download", "scanResults.csv");
       link.style.visibility = "hidden";
@@ -255,55 +233,76 @@ const SampleApp = () => {
     setTimeout(() => {
       Barkoder.setPauseDecoding(false);
     }, 5);
-
-    setResult(result);
+  
     setBarcodesScannedCount((prev) => prev + 1);
+    
     if (!result?.selections?.isMultiscanEnabled) {
       showBox("");
-    } else {
-      addNotifications(result);
     }
-
+  
     setFlags((prevFlags) => ({ ...prevFlags, showResultBox: true }));
-    let imageData = result.capturedFrame;
 
-    function fitToContainer(canvas) {
-      if (canvas && imageData) {
-        canvas.style.visibility = "visible";
-        canvas.style.display = "block";
-        canvas.width = imageData.width;
-        canvas.height = imageData.height;
-      }
-    }
-
-    setTimeout(() => {
-      var canvas = document.getElementById("barkoder-result-image");
-      var imageFullScreen = document.getElementById("barkoder-result-image-full");
-
+  
+    // Function to wait until canvas element is available
+    const waitForCanvas = (callback) => {
+      const canvas = document.getElementById("barkoder-result-image");
       if (canvas) {
-        var ctx = canvas.getContext("2d");      
-        createImageBitmap(result.capturedBarcode).then((image) => {
-          canvas.width = image.width;
-          canvas.height = image.height;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-        });
+        
+        callback(canvas);
+      } else {
+        setTimeout(() => waitForCanvas(callback), 50);
       }
-
-      if (imageFullScreen) {
-        fitToContainer(imageFullScreen, result.capturedFrame);
-        var ctx_full = imageFullScreen.getContext("2d");
+    };
+  
+    waitForCanvas((canvas) => {
+      const barcodeTitleElement = document.getElementById("barcode_title");
+      const barcodeDescriptionElement = document.getElementById("barcode_description");
       
-        createImageBitmap(result.capturedFrame).then((img) => {
-          imageFullScreen.width = img.width;
-          imageFullScreen.height = img.height;
-          ctx_full.clearRect(0, 0, imageFullScreen.width, imageFullScreen.height);
-          ctx_full.drawImage(img, 0, 0, imageFullScreen.width, imageFullScreen.height);
-        });
-      }
-    }, 350);
-  };
+  
+      if (result.results && Array.isArray(result.results)) {
+        const barcode = result.results[0].capturedBarcode;
+    
+        if (canvas) {
+          var ctx = canvas.getContext("2d");
+          canvas.width = barcode.width;
+          canvas.height = barcode.height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.putImageData(barcode, 0, 0);
+        }
+    
+        if (barcodeTitleElement) {
+          barcodeTitleElement.textContent = result.results[0].barcodeTypeName;
+        }
+    
+        if (barcodeDescriptionElement) {
+          barcodeDescriptionElement.textContent = result.results[0].textualData;
+        }
+    
+      } else {
+       
+        if (canvas) {
+          var ctx = canvas.getContext("2d");
+          canvas.width = result.capturedBarcode.width;
+          canvas.height = result.capturedBarcode.height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.putImageData(result.capturedBarcode, 0, 0);
+        }
+  
+        if (barcodeTitleElement) {
+          barcodeTitleElement.textContent = result.barcodeTypeName;
+        }
+  
+        if (barcodeDescriptionElement) {
+          barcodeDescriptionElement.textContent = result.textualData;
+        }
 
+        setShowStartBtn(true)
+      }
+    });
+  };
+  
+  
+  
   const handleCameraChange = (cameraId) => {
     setFlags((prevFlags) => ({
       ...prevFlags,
@@ -367,6 +366,7 @@ const SampleApp = () => {
   };
 
   const startScanner = () => {
+   
     setIsCameraStarted(true);
     setBarcodesScannedCount(0);
 
@@ -374,13 +374,20 @@ const SampleApp = () => {
       ...prevFlags,
       mode: "scanning",
       cammeraLoading: true,
+      showResultBox: '',
     }));
+
+    setShowStartBtn(false)
 
     setTimeout(() => {
       if (Barkoder) {
-      
-
         Barkoder?.startScanner((result) => {
+          if (!selections.isMultiscanEnabled && result) {
+            setFlags((prevFlags) => ({
+              ...prevFlags,
+             showStartBtn: true,
+            }))
+          }
           showResult(result);
           const newNotification = { 
             id: Date.now(), 
@@ -570,7 +577,7 @@ const SampleApp = () => {
   useEffect(() => {
     if (Barkoder?.applyTemplate) {
       const applyTemplate = async () => {
-        await Barkoder.applyTemplate("/templates.json", selections.template);
+        await Barkoder.applyTemplate("templates.json", selections.template);
       };
 
       applyTemplate();
@@ -603,20 +610,6 @@ const SampleApp = () => {
       }));
     }
   }, [selections.syms, barcodesData]);
-
-
-
-  useEffect(() => {
-    if (result && result.textualData) {
-      swipeHideResultSection();
-    }
-  }, [result?.textualData]);
-
-  useEffect(() => {
-    if (totalScannedBarcodes) {
-      swipeHideResultSection();
-    }
-  }, [totalScannedBarcodes]);
 
   useEffect(() => {
     if (selections.camera_res) {
@@ -682,6 +675,24 @@ const SampleApp = () => {
     delayFetchActiveCamera();
   }, [flags.cammeraRunning]);
 
+  useEffect(() => {
+    const { barcodeTitle, barcodeDescription } = getBarcodeData();
+
+    if (barcodeTitle && barcodeDescription) {
+      const isDuplicate = scannedBarcodes.some(
+        (barcode) =>
+          barcode.barcodeTitle === barcodeTitle && barcode.barcodeDescription === barcodeDescription
+      );
+
+      if (!isDuplicate) {
+        setScannedBarcodes((prevScannedBarcodes) => [
+          ...prevScannedBarcodes,
+          { barcodeTitle, barcodeDescription },
+        ]);
+      }
+    }
+  }, [document.getElementById("barcode_title")?.textContent, document.getElementById("barcode_description")?.textContent]);
+
   // useMemo
   const templateTitle = useMemo(() => {
     return templateTitles[selections.template];
@@ -714,16 +725,6 @@ const SampleApp = () => {
       }));
     }
   }, [Barkoder]);
-
-  const latestResult = useMemo(() => {
-    if (totalScannedBarcodes.length > 0) {
-      return totalScannedBarcodes[totalScannedBarcodes.length - 1];
-    } else if (Object.keys(result).length > 0) {
-      return { ...result };
-    }
-    return {};
-  }, [totalScannedBarcodes, result]);
-
 
   Barkoder?.addEventListener("startScanner", function(e) {
     setFlags(prevFlags => ({
@@ -814,18 +815,12 @@ const SampleApp = () => {
                     </div>
                   </div>
                 )}
-              {/* {flags.mode === "scanning" &&
-                // !flags.showResultBox &&
-                !flags.cammeraLoading &&
-                !flags.cammeraRunning && 
-                (
-                  <button
+              {flags.mode !== 'initial' && showStartBtn && selections.isMultiscanEnabled === false && <button
                     id="startAgain"
                     onClick={startScanner}
                   >
                     Start Camera
-                  </button>
-                )} */}
+                  </button> }
 
               {flags.mode === "scanning" &&
                 flags.cammeraLoading &&
@@ -1368,8 +1363,8 @@ const SampleApp = () => {
 
             <BarcodeResultBox
               isExpanded={isExpanded}
-              totalScannedBarcodes={totalScannedBarcodes}
-              result={result}
+              // totalScannedBarcodes={totalScannedBarcodes}
+              // result={result}
               barcodesScannedCount={barcodesScannedCount}
               flags={flags}
               setFlags={setFlags}

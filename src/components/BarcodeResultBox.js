@@ -3,8 +3,6 @@ import React from "react";
 const BarcodeResultBox = ({
   setFlags,
   isExpanded,
-  totalScannedBarcodes,
-  result,
   barcodesScannedCount,
   flags,
   toggleExpand,
@@ -29,47 +27,10 @@ const BarcodeResultBox = ({
 
             {/* Full Content View */}
             <div className="popup_expansion">
-              {totalScannedBarcodes.length ? (
-                <div className="result_text_list">
-                  <p className="total_scanned_barcodes">
-                    <span>{totalScannedBarcodes.length} items scanned</span>
-                    <button
-                      onClick={() =>
-                        setFlags((prevFlags) => ({
-                          ...prevFlags,
-                          showResultBox: false,
-                        }))
-                      }
-                    >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M11.8333 1.34175L10.6583 0.166748L5.99999 4.82508L1.34166 0.166748L0.166656 1.34175L4.82499 6.00008L0.166656 10.6584L1.34166 11.8334L5.99999 7.17508L10.6583 11.8334L11.8333 10.6584L7.17499 6.00008L11.8333 1.34175Z" />
-                      </svg>
-                    </button>
-                  </p>
-                  <div className="latest_scan">
-                    <p className="desc">
-                      {
-                        totalScannedBarcodes[totalScannedBarcodes.length - 1]
-                          .textualData
-                      }
-                    </p>
-                    <p className="title">
-                      {
-                        totalScannedBarcodes[totalScannedBarcodes.length - 1]
-                          .barcodeTypeName
-                      }
-                    </p>
-                  </div>
-                </div>
-              ) : (
+             
                 <div className="result_text_img">
-                  <p className="result_title">
-                    <span>{result.barcodeTypeName}</span>
+                  <div className="result_title">
+                    <span id="barcode_title"></span>
                     <button
                       onClick={() =>
                         setFlags((prevFlags) => ({
@@ -87,22 +48,17 @@ const BarcodeResultBox = ({
                         <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
                       </svg>
                     </button>
-                  </p>
+                  </div>
                   <div className="img_container">
                     <canvas
                       style={{ width: "inherit" }}
                       id="barkoder-result-image"
                     ></canvas>
                   </div>
+                  <p id="barcode_description"></p>
                   <p>{barcodesScannedCount} items scanned</p>
-                  {result.textualData && <p>{result.textualData}</p>}
-                  {totalScannedBarcodes.length > 0 && (
-                    <p className="total_scanned_barcodes">
-                      {totalScannedBarcodes.length} items scanned
-                    </p>
-                  )}
                 </div>
-              )}
+             
 
               {isExpanded && (
                 <div className="results_btn_container">
