@@ -34,46 +34,7 @@ const SampleApp = () => {
   const [notifications, setNotifications] = useState([]);
   const [templateData, setTemplateData] = useState({});
 
-  const [barcodesData, setBarcodesData] = useState({
-    0: { title: "Aztec", type: "2d" },
-    1: { title: "Aztec Compact", type: "2d" },
-    2: { title: "QR Code", type: "2d" },
-    3: { title: "Micro QR Code", type: "2d" },
-    4: { title: "Code 128", type: "1d" },
-    5: { title: "Code 93", type: "1d" },
-    6: { title: "Code 39", type: "1d" },
-    7: { title: "Codabar", type: "1d" },
-    8: { title: "Code 11", type: "1d" },
-    9: { title: "MSI Plessey", type: "1d" },
-    10: { title: "UPC A", type: "1d" },
-    11: { title: "UPC E", type: "1d" },
-    12: { title: "UPC E1", type: "1d" },
-    13: { title: "EAN 13", type: "1d" },
-    14: { title: "EAN 8", type: "1d" },
-    15: { title: "PDF417", type: "2d" },
-    16: { title: "Micro PDF417", type: "2d" },
-    17: { title: "Data Matrix", type: "2d" },
-    18: { title: "Code 25", type: "1d" },
-    19: { title: "Interleaved 2 of 5", type: "1d" },
-    20: { title: "ITF-14", type: "1d" },
-    21: { title: "Code 2 of 5 IATA", type: "1d" },
-    22: { title: "Code 2 of 5 Matrix", type: "1d" },
-    23: { title: "Code 2 of 5 Datalogic", type: "1d" },
-    24: { title: "Code 2 of 5 Standard", type: "1d" },
-    25: { title: "Code 32", type: "1d" },
-    26: { title: "Telepen", type: "1d" },
-    27: { title: "DotCode", type: "2d" },
-    28: { title: "Databar14", type: "1d"},
-    29: { title: "DatabarLimited", type: "1d"},
-    30: { title: "DatabarExpanded", type: "1d"},
-    31: { title: "PostalIMB", type: "1d"},
-    32: { title: "Postnet", type: "1d"},
-    32: { title: "Planet", type: "1d"},
-    33: { title: "AustralianPost", type: "1d"},
-    34: { title: "RoyalMail", type: "1d"},
-    35: { title: "KIX", type: "1d"},
-    36: { title: "JapanesePost", type: "1d"},
-  });
+  const [barcodesData, setBarcodesData] = useState({});
   const [templateTitles, setTemplateTitles] = useState({
     all: "All Barcodes",
   });
@@ -86,7 +47,65 @@ const SampleApp = () => {
   const [scannedBarcodes, setScannedBarcodes] = useState([]);
   const [showStartBtn, setShowStartBtn] = useState(false);
 
+  useEffect(() => {
+    if (Barkoder) {
+      const updateBarcodesData = () => {
+        const decoders = {
+          [Barkoder.constants.Decoders.Aztec]: { title: "Aztec", type: "2d" },
+          [Barkoder.constants.Decoders.AztecCompact]: { title: "Aztec Compact", type: "2d" },
+          [Barkoder.constants.Decoders.QR]: { title: "QR Code", type: "2d" },
+          [Barkoder.constants.Decoders.QRMicro]: { title: "Micro QR Code", type: "2d" },
+          [Barkoder.constants.Decoders.Code128]: { title: "Code 128", type: "1d" },
+          [Barkoder.constants.Decoders.Code93]: { title: "Code 93", type: "1d" },
+          [Barkoder.constants.Decoders.Code39]: { title: "Code 39", type: "1d" },
+          [Barkoder.constants.Decoders.Codabar]: { title: "Codabar", type: "1d" },
+          [Barkoder.constants.Decoders.Code11]: { title: "Code 11", type: "1d" },
+          [Barkoder.constants.Decoders.Msi]: { title: "MSI Plessey", type: "1d" },
+          [Barkoder.constants.Decoders.UpcA]: { title: "UPC A", type: "1d" },
+          [Barkoder.constants.Decoders.UpcE]: { title: "UPC E", type: "1d" },
+          [Barkoder.constants.Decoders.UpcE1]: { title: "UPC E1", type: "1d" },
+          [Barkoder.constants.Decoders.Ean13]: { title: "EAN 13", type: "1d" },
+          [Barkoder.constants.Decoders.Ean8]: { title: "EAN 8", type: "1d" },
+          [Barkoder.constants.Decoders.PDF417]: { title: "PDF417", type: "2d" },
+          [Barkoder.constants.Decoders.PDF417Micro]: { title: "Micro PDF417", type: "2d" },
+          [Barkoder.constants.Decoders.Datamatrix]: { title: "Data Matrix", type: "2d" },
+          [Barkoder.constants.Decoders.Code25]: { title: "Code 25", type: "1d" },
+          [Barkoder.constants.Decoders.Interleaved25]: { title: "Interleaved 2 of 5", type: "1d" },
+          [Barkoder.constants.Decoders.ITF14]: { title: "ITF-14", type: "1d" },
+          [Barkoder.constants.Decoders.IATA25]: { title: "Code 2 of 5 IATA", type: "1d" },
+          [Barkoder.constants.Decoders.Matrix25]: { title: "Code 2 of 5 Matrix", type: "1d" },
+          [Barkoder.constants.Decoders.Datalogic25]: { title: "Code 2 of 5 Datalogic", type: "1d" },
+          [Barkoder.constants.Decoders.COOP25]: { title: "Code 2 of 5 Standard", type: "1d" },
+          [Barkoder.constants.Decoders.Code32]: { title: "Code 32", type: "1d" },
+          [Barkoder.constants.Decoders.Telepen]: { title: "Telepen", type: "1d" },
+          [Barkoder.constants.Decoders.Dotcode]: { title: "DotCode", type: "2d" },
+          [Barkoder.constants.Decoders.Databar14]: { title: "Databar 14", type: "1d" },
+          [Barkoder.constants.Decoders.DatabarLimited]: { title: "Databar Limited", type: "1d" },
+          [Barkoder.constants.Decoders.DatabarExpanded]: { title: "Databar Expanded", type: "1d" },
+          [Barkoder.constants.Decoders.PostalIMB]: { title: "Postal IMB", type: "1d" },
+          [Barkoder.constants.Decoders.Postnet]: { title: "Postnet", type: "1d" },
+          [Barkoder.constants.Decoders.Planet]: { title: "Planet", type: "1d" },
+          [Barkoder.constants.Decoders.AustralianPost]: { title: "Australian Post", type: "1d" },
+          [Barkoder.constants.Decoders.RoyalMail]: { title: "Royal Mail", type: "1d" },
+          [Barkoder.constants.Decoders.KIX]: { title: "KIX", type: "1d" },
+          [Barkoder.constants.Decoders.JapanesePost]: { title: "Japanese Post", type: "1d" },
+        };
 
+        const updatedBarcodesData = {};
+  
+        Object.entries(decoders).forEach(([key, value]) => {
+          const intKey = parseInt(key, 10);
+          updatedBarcodesData[intKey] = value; 
+        });
+  
+       
+        setBarcodesData(updatedBarcodesData);
+      };
+  
+      updateBarcodesData();
+     
+    }
+  }, [Barkoder]); 
 
 
   const handleZoom = async () => {
