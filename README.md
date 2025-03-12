@@ -165,7 +165,7 @@ const stopScanner = (mode) => {
 
 ## Demo
 
-As mentioned to see this code in action on a live web server you can try [barKoder React WASM Demo](https://dev2.afk.mk/react-wasm-demo/build/). Works best in Safari on iOS and Chrome on Android. Other main browser are also supported.
+As mentioned to see this code in action on a live web server you can try [barKoder React WASM Demo](https://barkoder.com/react-wasm-demo/). Works best in Safari on iOS and Chrome on Android. Other main browser are also supported.
 
 ## License
 
