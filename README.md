@@ -41,7 +41,7 @@ npm start
 ```
 
 
-# Implementation
+## Implementation
 
 ```bash
 npx create-react-app app-name
@@ -49,7 +49,7 @@ cd app-name
 npm install barkoder-wasm
 ```
 
-## index.js file:
+### index.js file:
 
 ```javascript
 import React from "react";
@@ -61,7 +61,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<SampleApp />);
 ```
 
-## sampleapp.js:
+### sampleapp.js:
 
 ```javascript
 import React, { useState, useEffect, useMemo } from "react";
