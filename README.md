@@ -175,6 +175,8 @@ Running the barKoder Barcode Scanner SDK without a valid trial or production lic
 
 Each trial license is valid for 30 days and can be used on up to 50 devices.
 
+If you are interested in a Vue.JS build you can check [WASM DEMO](https://github.com/barKoderSDK/barkoder-wasm-demo).
+
 
 
 
