@@ -2,6 +2,8 @@
 
 This is an example of how to integrate WebAssembly (WASM) into a React.js project. The integration process allows you to use WASM modules for faster execution of code in the browser, providing an enhanced user experience.
 
+TL/DR need to see demo in action: [barKoder React WASM Demo](https://dev2.afk.mk/react-wasm-demo/build/).
+
 ## Features
 
 - **Barcode Scanning**: Scan a wide variety of barcodes (1D, 2D) including QR codes, UPC, Code 128, and more.
@@ -161,7 +163,9 @@ const stopScanner = (mode) => {
 }
 ```
 
+## Demo
 
+As mentioned to see this code in action on a live web server you can try [barKoder React WASM Demo](https://dev2.afk.mk/react-wasm-demo/build/). Works best in Safari on iOS and Chrome on Android. Other main browser are also supported.
 
 ## License
 
