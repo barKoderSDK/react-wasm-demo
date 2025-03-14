@@ -68,7 +68,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import BarkoderSDK from "barkoder-wasm";
 
 const [isInitialized, setIsInitialized] = useState(false);
-const [barkoder, setBarkoder] = useState(null);
+const [Barkoder, setBarkoder] = useState(null);
 const [templateData, setTemplateData] = useState({});
 const [barcodesData, setBarcodesData] = useState({});
 const [cameras, setCameras] = useState([]);
