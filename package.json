@@ -16,6 +16,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "prestart": "npm run prebuild",
     "prebuild": "node -e \"var fs = require('fs'); if(!fs.existsSync('public/static')){fs.mkdirSync('public/static');fs.mkdirSync('public/static/js');}else if(!fs.existsSync('public/static/js')){fs.mkdirSync('public/static/js');}\" && shx cp ./node_modules/barkoder-wasm/barkoder.wasm public/static/js && shx cp ./node_modules/barkoder-wasm/barkoder_nosimd.wasm public/static/js",
     "build": "react-scripts build",
     "postbuild": "",
