@@ -543,7 +543,9 @@ const SampleApp = () => {
   useEffect(() => {
     const initializeBarkoder = async () => {
       
-      const Barkoder = await BarkoderSDK.initialize("YOUR_LICENCE_KEY");
+      const Barkoder = await BarkoderSDK.initialize("YOUR_LICENCE_KEY", {
+        wasmPath: "./static/js/barkoder.wasm",
+      });
       setIsInitialized(true);
       Barkoder.setEnabledDecoders(
         Barkoder.constants.Decoders.QR,
